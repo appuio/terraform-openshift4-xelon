@@ -1,0 +1,26 @@
+; Cluster ${cluster_id}
+$ORIGIN ${node_name_suffix}.
+
+%{ if api_vip != "" ~}
+api         IN A     ${api_vip}
+%{ endif ~}
+api-int     IN A     ${internal_vip}
+%{ if router_vip != "" ~}
+ingress     IN A     ${router_vip}
+%{ endif ~}
+%{ if internal_router_vip != "" ~}
+ingress-int IN A     ${internal_router_vip}
+%{ endif ~}
+%{ if egress_vip != "" ~}
+egress      IN A     ${egress_vip}
+%{ endif ~}
+
+*.apps    IN CNAME ingress.${node_name_suffix}.
+
+%{ for i, addr in lbs ~}
+${lb_hostnames[i]} IN A     ${addr}
+%{ endfor ~}
+
+%{ for i, addr in masters ~}
+etcd-${i} IN A     ${addr}
+%{ endfor ~}
